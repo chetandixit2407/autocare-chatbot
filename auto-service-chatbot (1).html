@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AutoCare AI — Smart Booking</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c10;--s1:#111318;--s2:#181c24;--s3:#1e2330;
+  --b1:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);
+  --acc:#e8a020;--acc2:#f5b940;--adim:rgba(232,160,32,.14);
+  --txt:#f0f2f5;--txt2:#8b93a8;--txt3:#4e5668;
+  --grn:#22c55e;--gdim:rgba(34,197,94,.12);
+  --blu:#3b82f6;--bdim:rgba(59,130,246,.1);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:60px;background:var(--s1);border-bottom:1px solid var(--b1);position:sticky;top:0;z-index:99}
+.logo{display:flex;align-items:center;gap:9px;font-family:'Rajdhani',sans-serif;font-size:21px;font-weight:700;letter-spacing:1px}
+.logo-box{width:34px;height:34px;background:var(--acc);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.logo em{color:var(--acc);font-style:normal}
+.pill{display:flex;align-items:center;gap:6px;background:var(--gdim);border:1px solid rgba(34,197,94,.25);color:var(--grn);font-size:12px;font-weight:500;padding:4px 12px;border-radius:100px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+
+.chips{display:flex;gap:7px;padding:12px 1.5rem;background:var(--s1);border-bottom:1px solid var(--b1);overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:5px;padding:5px 13px;border-radius:100px;background:var(--s2);border:1px solid var(--b1);font-size:12px;color:var(--txt2);white-space:nowrap;cursor:pointer;transition:all .18s;user-select:none}
+.chip:hover{border-color:var(--acc);color:var(--acc);background:var(--adim)}
+
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:0 1rem;overflow:hidden}
+.chat-wrap{width:100%;max-width:760px;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.msgs{flex:1;overflow-y:auto;padding:1.25rem 0;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin;scrollbar-color:var(--s3) transparent}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
+
+.msg{display:flex;gap:9px;max-width:88%;animation:rise .28s ease}
+.msg.u{align-self:flex-end;flex-direction:row-reverse}
+.msg.b{align-self:flex-start}
+@keyframes rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.av.b{background:var(--acc);color:#000}
+.av.u{background:var(--bdim);border:1px solid rgba(59,130,246,.3);font-size:12px;font-weight:600;color:var(--blu);font-family:'Rajdhani',sans-serif}
+.bub{padding:11px 15px;border-radius:13px;font-size:14px;line-height:1.65}
+.b .bub{background:var(--s2);border:1px solid var(--b1);border-bottom-left-radius:3px;color:var(--txt)}
+.u .bub{background:var(--acc);color:#080a0e;font-weight:500;border-bottom-right-radius:3px}
+
+.typing-dots{display:flex;gap:5px;padding:3px 0}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--txt3);animation:blink 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+.qrs{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.qr{padding:6px 13px;border-radius:100px;border:1px solid var(--b2);background:transparent;color:var(--txt2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .16s}
+.qr:hover{border-color:var(--acc);color:var(--acc);background:var(--adim)}
+
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.svc-card{background:var(--s3);border:1px solid var(--b1);border-radius:11px;padding:10px 13px;cursor:pointer;transition:all .18s;text-align:left}
+.svc-card:hover{border-color:var(--acc);background:var(--adim)}
+.svc-card .sname{font-size:13px;font-weight:500;color:var(--txt)}
+.svc-card .sprice{font-size:12px;color:var(--acc);margin-top:2px}
+.svc-card .stime{font-size:11px;color:var(--txt3)}
+
+.receipt{background:var(--s1);border:1px solid var(--b2);border-radius:15px;overflow:hidden;margin-top:12px;font-size:13px}
+.receipt-hdr{background:var(--acc);color:#000;padding:13px 17px;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:.8px;display:flex;justify-content:space-between;align-items:center}
+.r-id{font-size:11px;font-weight:500;opacity:.65;font-family:'DM Sans',sans-serif}
+.receipt-body{padding:14px 17px;display:flex;flex-direction:column}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--b1)}
+.rrow:last-child{border-bottom:none}
+.rl{color:var(--txt2);font-size:12.5px}
+.rv{color:var(--txt);font-weight:500}
+.rtotal{background:var(--adim);border:1px solid rgba(232,160,32,.2);border-radius:10px;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;margin:10px 0 4px}
+.rtotal .rl{color:var(--acc);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;letter-spacing:.5px}
+.rtotal .rv{color:var(--acc);font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700}
+.receipt-foot{background:var(--s2);padding:9px 17px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--b1)}
+.conf-badge{display:flex;align-items:center;gap:5px;color:var(--grn);font-weight:600;font-size:11px;background:var(--gdim);border:1px solid rgba(34,197,94,.25);padding:3px 9px;border-radius:100px}
+.print-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--b2);background:transparent;color:var(--txt2);font-size:11px;cursor:pointer;transition:all .15s}
+.print-btn:hover{border-color:var(--acc);color:var(--acc)}
+
+.input-zone{padding:.9rem 0 1.4rem;width:100%;max-width:760px;align-self:center}
+.input-row{display:flex;gap:9px;align-items:flex-end;background:var(--s2);border:1px solid var(--b2);border-radius:13px;padding:9px 11px;transition:border-color .2s}
+.input-row:focus-within{border-color:var(--acc)}
+textarea{flex:1;resize:none;border:none;outline:none;background:transparent;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;max-height:110px;overflow-y:auto}
+textarea::placeholder{color:var(--txt3)}
+.send{width:37px;height:37px;border-radius:9px;background:var(--acc);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .16s;flex-shrink:0;color:#000;font-size:16px}
+.send:hover{background:var(--acc2);transform:scale(1.06)}
+.send:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.hint{text-align:center;font-size:11px;color:var(--txt3);margin-top:7px}
+
+@media(max-width:500px){.svc-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-box">&#128295;</div>
+    Auto<em>Care</em> AI
+  </div>
+  <div class="pill"><div class="dot"></div>AI Online</div>
+</header>
+
+<div class="chips">
+  <div class="chip" onclick="chipClick('Oil Change')">&#128748; Oil Change</div>
+  <div class="chip" onclick="chipClick('Brake Service')">&#128308; Brake Service</div>
+  <div class="chip" onclick="chipClick('Tire Rotation')">&#9881;&#65039; Tire Rotation</div>
+  <div class="chip" onclick="chipClick('AC Repair')">&#10052;&#65039; AC Repair</div>
+  <div class="chip" onclick="chipClick('Full Car Service')">&#128663; Full Service</div>
+  <div class="chip" onclick="chipClick('Battery Replacement')">&#128267; Battery</div>
+  <div class="chip" onclick="chipClick('Denting & Painting')">&#127912; Dent &amp; Paint</div>
+  <div class="chip" onclick="chipClick('Wheel Alignment')">&#127919; Alignment</div>
+</div>
+
+<main>
+  <div class="chat-wrap">
+    <div class="msgs" id="msgs"></div>
+  </div>
+  <div class="input-zone">
+    <div class="input-row">
+      <textarea id="inp" placeholder="Type here or tap a service above…" rows="1"
+        onkeydown="handleKey(event)" oninput="grow(this)"></textarea>
+      <button class="send" id="sendBtn" onclick="handleSend()">&#10148;</button>
+    </div>
+    <p class="hint">AutoCare AI &middot; 24/7 Booking &middot; All prices include labour</p>
+  </div>
+</main>
+
+<script>
+var SERVICES=[
+  {key:'oil change',name:'Oil Change',price:799,time:'45 mins',emoji:'🛢️'},
+  {key:'brake service',name:'Brake Service',price:2499,time:'2 hours',emoji:'🔴'},
+  {key:'brake check',name:'Brake Service',price:2499,time:'2 hours',emoji:'🔴'},
+  {key:'brakes',name:'Brake Service',price:2499,time:'2 hours',emoji:'🔴'},
+  {key:'tire rotation',name:'Tire Rotation',price:499,time:'30 mins',emoji:'⚙️'},
+  {key:'tyre rotation',name:'Tire Rotation',price:499,time:'30 mins',emoji:'⚙️'},
+  {key:'ac repair',name:'AC Repair',price:1999,time:'3 hours',emoji:'❄️'},
+  {key:'ac service',name:'AC Repair',price:1999,time:'3 hours',emoji:'❄️'},
+  {key:'full car service',name:'Full Car Service',price:4999,time:'4 hours',emoji:'🚗'},
+  {key:'full service',name:'Full Car Service',price:4999,time:'4 hours',emoji:'🚗'},
+  {key:'battery replacement',name:'Battery Replacement',price:3499,time:'1 hour',emoji:'🔋'},
+  {key:'battery',name:'Battery Replacement',price:3499,time:'1 hour',emoji:'🔋'},
+  {key:'denting',name:'Denting & Painting',price:5999,time:'2 days',emoji:'🎨'},
+  {key:'dent & paint',name:'Denting & Painting',price:5999,time:'2 days',emoji:'🎨'},
+  {key:'denting & painting',name:'Denting & Painting',price:5999,time:'2 days',emoji:'🎨'},
+  {key:'painting',name:'Denting & Painting',price:5999,time:'2 days',emoji:'🎨'},
+  {key:'wheel alignment',name:'Wheel Alignment',price:599,time:'1 hour',emoji:'🎯'},
+  {key:'alignment',name:'Wheel Alignment',price:599,time:'1 hour',emoji:'🎯'},
+];
+
+var SLOTS=['9:00 AM','10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'];
+
+var state='greet';
+var booking={service:null,name:'',phone:'',car:'',date:'',time:''};
+var busy=false;
+
+function genId(){return 'AC'+Date.now().toString().slice(-6)+Math.floor(Math.random()*90+10);}
+function fmt(n){return '\u20B9'+n.toLocaleString('en-IN');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function findSvc(txt){
+  var t=txt.toLowerCase();
+  for(var i=0;i<SERVICES.length;i++){
+    if(t.indexOf(SERVICES[i].key)!==-1) return SERVICES[i];
+  }
+  return null;
+}
+
+function getDate(offset){
+  var d=new Date(); d.setDate(d.getDate()+offset);
+  return d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+}
+
+function uniqueServices(){
+  var seen={}, res=[];
+  for(var i=0;i<SERVICES.length;i++){
+    if(!seen[SERVICES[i].name]){seen[SERVICES[i].name]=1;res.push(SERVICES[i]);}
+  }
+  return res;
+}
+
+function serviceGrid(){
+  var svcs=uniqueServices();
+  var html='<div class="svc-grid">';
+  for(var i=0;i<svcs.length;i++){
+    var s=svcs[i];
+    html+='<div class="svc-card" onclick="chipClick(\''+s.name+'\')">'+
+      '<div class="sname">'+s.emoji+' '+s.name+'</div>'+
+      '<div class="sprice">'+fmt(s.price)+'</div>'+
+      '<div class="stime">&#9201; '+s.time+'</div>'+
+      '</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function buildReceipt(b){
+  var id=genId();
+  var gst=Math.round(b.service.price*0.18);
+  var total=b.service.price+gst;
+  var now=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+  return '<div class="receipt">'+
+    '<div class="receipt-hdr">'+
+      '<div>&#128295; AutoCare Service Center<div class="r-id">Booking Confirmation</div></div>'+
+      '<div style="text-align:right"><div style="font-size:13px;font-weight:600">#'+id+'</div><div class="r-id">'+now+'</div></div>'+
+    '</div>'+
+    '<div class="receipt-body">'+
+      '<div class="rrow"><span class="rl">&#128100; Customer</span><span class="rv">'+esc(b.name)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128241; Phone</span><span class="rv">'+esc(b.phone)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128663; Vehicle</span><span class="rv">'+esc(b.car)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128295; Service</span><span class="rv">'+b.service.name+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128197; Date</span><span class="rv">'+esc(b.date)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128336; Time</span><span class="rv">'+esc(b.time)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#9201; Duration</span><span class="rv">'+b.service.time+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#128176; Service Charge</span><span class="rv">'+fmt(b.service.price)+'</span></div>'+
+      '<div class="rrow"><span class="rl">&#127963; GST 18%</span><span class="rv">'+fmt(gst)+'</span></div>'+
+      '<div class="rtotal"><span class="rl">TOTAL PAYABLE</span><span class="rv">'+fmt(total)+'</span></div>'+
+    '</div>'+
+    '<div class="receipt-foot">'+
+      '<div class="conf-badge">&#10003; BOOKING CONFIRMED</div>'+
+      '<button class="print-btn" onclick="window.print()">&#128424; Print</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function scrollDown(){
+  var m=document.getElementById('msgs');
+  requestAnimationFrame(function(){m.scrollTop=m.scrollHeight;});
+}
+
+function addMsg(role,html,extra){
+  extra=extra||'';
+  var m=document.getElementById('msgs');
+  var d=document.createElement('div');
+  d.className='msg '+(role==='bot'?'b':'u');
+  d.innerHTML='<div class="av '+(role==='bot'?'b':'u')+'">'+(role==='bot'?'&#128295;':'You')+'</div>'+
+    '<div><div class="bub">'+html+'</div>'+extra+'</div>';
+  m.appendChild(d);
+  scrollDown();
+  return d;
+}
+
+function addQRs(list){
+  var m=document.getElementById('msgs');
+  var last=m.lastElementChild;
+  if(!last) return;
+  var qrs=document.createElement('div');
+  qrs.className='qrs';
+  for(var i=0;i<list.length;i++){
+    (function(text){
+      var b=document.createElement('button');
+      b.className='qr'; b.textContent=text;
+      b.onclick=function(){qrs.remove(); userInput(text);};
+      qrs.appendChild(b);
+    })(list[i]);
+  }
+  last.querySelector('div').appendChild(qrs);
+  scrollDown();
+}
+
+function showTyping(){
+  var m=document.getElementById('msgs');
+  var d=document.createElement('div');
+  d.className='msg b'; d.id='typer';
+  d.innerHTML='<div class="av b">&#128295;</div><div><div class="bub"><div class="typing-dots"><span></span><span></span><span></span></div></div></div>';
+  m.appendChild(d); scrollDown();
+}
+function hideTyping(){var t=document.getElementById('typer');if(t)t.remove();}
+
+function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+async function botReply(html,extra,qrs){
+  showTyping();
+  await delay(500+Math.random()*400);
+  hideTyping();
+  addMsg('bot',html,extra||'');
+  if(qrs&&qrs.length) addQRs(qrs);
+}
+
+async function processInput(text){
+  var t=text.trim();
+  var tl=t.toLowerCase();
+
+  // GREET / SERVICE selection
+  if(state==='greet'||state==='service'){
+    var svc=findSvc(tl);
+    if(svc){
+      booking.service=svc;
+      state='name';
+      await botReply('Great choice! <strong>'+svc.emoji+' '+svc.name+'</strong> &mdash; '+fmt(svc.price)+' (Est. '+svc.time+')<br><br>May I have your <strong>full name</strong> please?');
+      return;
+    }
+    if(/hi|hello|hey|namaste|helo|hii|start/.test(tl)){
+      state='service';
+      await botReply('Namaste! &#128591; Welcome to <strong>AutoCare Service Center</strong>!<br>I\'m your AI booking assistant. Which service do you need today?',serviceGrid());
+      return;
+    }
+    if(/service|what|help|list|price|offer|show/.test(tl)){
+      state='service';
+      await botReply('Here are all our services — tap to book:',serviceGrid());
+      return;
+    }
+    state='service';
+    await botReply('Please select a service to get started:',serviceGrid());
+    return;
+  }
+
+  if(state==='name'){
+    if(t.length<2){await botReply('Please enter your <strong>full name</strong>.');return;}
+    booking.name=t;
+    state='phone';
+    await botReply('Thanks, <strong>'+esc(booking.name)+'</strong>! &#128522;<br>What is your <strong>10-digit mobile number</strong>?');
+    return;
+  }
+
+  if(state==='phone'){
+    var digits=t.replace(/\D/g,'');
+    if(digits.length!==10){await botReply('Please enter a valid <strong>10-digit</strong> mobile number (numbers only).');return;}
+    booking.phone=digits.replace(/(\d{5})(\d{5})/,'$1 $2');
+    state='car';
+    await botReply('Got it! &#128241;<br>What is your <strong>car details</strong>?<br><small style="color:var(--txt3)">e.g. Honda City 2020, Maruti Swift, Hyundai i20 2022</small>');
+    return;
+  }
+
+  if(state==='car'){
+    if(t.length<3){await botReply('Please mention your car make and model (e.g. <em>Maruti Swift 2021</em>).');return;}
+    booking.car=t;
+    state='date';
+    await botReply('Nice! &#128663; When would you like to bring in your <strong>'+esc(booking.car)+'</strong>?',
+      '',['Tomorrow','Day After Tomorrow','This Saturday','Next Monday']);
+    return;
+  }
+
+  if(state==='date'){
+    if(t.length<2){await botReply('Please mention a date (e.g. Tomorrow, Monday, 25 June).');return;}
+    var dl=tl;
+    if(/tomorrow|kal/.test(dl)) booking.date=getDate(1);
+    else if(/day after/.test(dl)) booking.date=getDate(2);
+    else if(/saturday|weekend/.test(dl)) booking.date='This Saturday';
+    else if(/monday/.test(dl)) booking.date='Next Monday';
+    else if(/today|abhi/.test(dl)) booking.date='Today';
+    else booking.date=t;
+    state='time';
+    await botReply('&#128197; <strong>'+esc(booking.date)+'</strong> noted!<br>What <strong>time slot</strong> suits you?',
+      '',['9:00 AM','11:00 AM','2:00 PM','4:00 PM','5:00 PM']);
+    return;
+  }
+
+  if(state==='time'){
+    if(t.length<3){await botReply('Please choose a time slot.');return;}
+    var found=null;
+    for(var i=0;i<SLOTS.length;i++){
+      if(tl.replace(/\s/g,'').indexOf(SLOTS[i].toLowerCase().replace(/\s/g,''))!==-1){found=SLOTS[i];break;}
+    }
+    booking.time=found||t;
+    state='confirm';
+    var s=booking.service;
+    var gst2=Math.round(s.price*0.18);
+    await botReply(
+      'Let me confirm your booking details &#128203;<br><br>'+
+      '<span style="color:var(--txt2);font-size:13px;line-height:2">'+
+      '&#128295; Service: <strong style="color:var(--txt)">'+esc(s.name)+'</strong><br>'+
+      '&#128100; Name: <strong style="color:var(--txt)">'+esc(booking.name)+'</strong><br>'+
+      '&#128241; Phone: <strong style="color:var(--txt)">'+esc(booking.phone)+'</strong><br>'+
+      '&#128663; Car: <strong style="color:var(--txt)">'+esc(booking.car)+'</strong><br>'+
+      '&#128197; Date: <strong style="color:var(--txt)">'+esc(booking.date)+'</strong><br>'+
+      '&#128336; Time: <strong style="color:var(--txt)">'+esc(booking.time)+'</strong><br>'+
+      '&#128176; Total: <strong style="color:var(--acc)">'+fmt(s.price+gst2)+'</strong> (incl. 18% GST)'+
+      '</span><br><br>Shall I confirm this booking?',
+      '',['Yes, Confirm!','No, Start Over']);
+    return;
+  }
+
+  if(state==='confirm'){
+    if(/yes|confirm|haan|ok|sure|book|done/.test(tl)){
+      state='done';
+      await botReply('Booking confirmed! Here is your receipt:','',  []);
+      // add receipt separately
+      var m=document.getElementById('msgs');
+      var d=document.createElement('div');
+      d.className='msg b'; d.style.maxWidth='100%';
+      d.innerHTML='<div class="av b">&#128295;</div><div style="flex:1">'+buildReceipt(booking)+'</div>';
+      m.appendChild(d); scrollDown();
+      await delay(600);
+      await botReply('Thank you for choosing <strong>AutoCare</strong>! &#128591;<br>Our team will call you before your appointment. Drive safe! &#128663;',
+        '',['Book Another Service','View Service Prices','Contact Us']);
+      return;
+    }
+    if(/no|nahi|cancel|change|start over/.test(tl)){
+      state='service';
+      booking={service:null,name:'',phone:'',car:'',date:'',time:''};
+      await botReply("No problem! Let's start fresh. Which service do you need?",serviceGrid());
+      return;
+    }
+    await botReply('Please confirm — should I book this?','',['Yes, Confirm!','No, Start Over']);
+    return;
+  }
+
+  if(state==='done'){
+    if(/another|new|book again/.test(tl)){
+      state='service'; booking={service:null,name:'',phone:'',car:'',date:'',time:''};
+      await botReply("Sure! Let's book another service.",serviceGrid());
+      return;
+    }
+    if(/price|cost|rate|list/.test(tl)){
+      await botReply('Here are our service prices:',serviceGrid());
+      return;
+    }
+    if(/contact|call|phone|human|agent/.test(tl)){
+      await botReply('Our team is available <strong>Mon–Sat, 9 AM – 6 PM</strong><br>&#128222; <strong style="color:var(--acc)">+91 98765 43210</strong><br>&#128205; AutoCare Service Center, Sector 18, Noida');
+      return;
+    }
+    if(/thank|shukriya|thanks/.test(tl)){
+      await botReply('You\'re welcome! &#128522; Have a great day and safe driving! &#128663;');
+      return;
+    }
+    await botReply('Is there anything else I can help you with?','',['Book Another Service','View Prices','Contact Us']);
+    return;
+  }
+}
+
+async function userInput(text){
+  if(busy) return;
+  var t=text.trim();
+  if(!t) return;
+  busy=true;
+  document.getElementById('sendBtn').disabled=true;
+  addMsg('user',esc(t));
+  await processInput(t);
+  busy=false;
+  document.getElementById('sendBtn').disabled=false;
+  document.getElementById('inp').focus();
+}
+
+function handleSend(){
+  var inp=document.getElementById('inp');
+  var v=inp.value.trim();
+  if(!v||busy) return;
+  inp.value=''; inp.style.height='auto';
+  userInput(v);
+}
+
+function chipClick(name){if(!busy) userInput(name);}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}
+}
+
+function grow(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,110)+'px';
+}
+
+// BOOT
+(async function(){
+  showTyping();
+  await delay(900);
+  hideTyping();
+  addMsg('bot',
+    'Namaste! &#128591; Welcome to <strong>AutoCare Service Center</strong>!<br>'+
+    'I\'m your AI booking assistant. Book any car service and get an instant receipt.<br><br>'+
+    'Which service do you need today?',
+    serviceGrid()
+  );
+})();
+</script>
+</body>
+</html>
